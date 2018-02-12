@@ -3,7 +3,7 @@ const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
 
-const {generateMessage} = require('./utils/message');
+const {generateMessage, generateLocationMessage} = require('./utils/message');
 const publicPath = path.join(__dirname, '../public');
 var app = express();
 const port = process.env.PORT||3000;
@@ -15,6 +15,16 @@ app.use(express.static(publicPath));
 io.on('connection', (socket) =>{
   console.log("New user connected");
 
+  // socket.on('newLocationMessage', function(message) {
+  //   var li = jQuery('<li></li>');
+  //   var a = jQuery('<a target="_blank">My current location</a>');
+  //
+  //   li.text(`${message.from}: `);
+  //   a.attr('href', message.url);
+  //   li.append(a);
+  //   jQuery('#messages').append(li);
+  // });
+
   socket.emit('newMessage', generateMessage('Admin', "Welcome to chat app"));
 
   socket.broadcast.emit('newMessage', generateMessage('Admin', "New user joined"));
@@ -25,6 +35,9 @@ io.on('connection', (socket) =>{
     callback("This is from the server");
   });
 
+  socket.on('createLocationMessage', (coords)=>{
+    io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude));
+  });
 
   socket.on('disconnect', () =>{
     console.log('User was disconnected');
